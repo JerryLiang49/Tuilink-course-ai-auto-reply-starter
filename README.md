@@ -21,8 +21,12 @@ This project implements an automated reply generation system that:
 │   └── convo_2454_rows.xlsx    # Conversation dataset
 ├── models/                     # Core data models
 ├── nodes/                      # Processing nodes
-├── output/                     # Generated outputs
 ├── utils/                      # Utility functions
+├── .env.example                # Example environment config
+├── build.sh                    # Build script for dist/
+├── handler.py                  # Web / Quick Lambda: generate reply messages
+├── requirements-compact.txt    # Compact dependencies for deployment
+├── requirements.txt            # Full dependencies for local development
 └── *.ipynb                     # Local notebooks to play around
 ```
 
@@ -45,7 +49,7 @@ pip install -r requirements.txt
 
 ## Environment Variables
 
-The project uses environment variables for configuration. Create a `.env` file with the following necessary credentials and settings:
+Create a `.env` file (or export in your deployment) with the following credentials and settings:
 
 ```bash
 # OpenAI
@@ -66,7 +70,7 @@ LLM_INCLUDE_DEBUG_FIELDS=true
 
 Use the build script to create a self-contained `dist/` folder ready for packaging and deployment.
 
-1. Ensure your `.env` is present and set `LLM_USE_CACHE=false` and `LLM_INCLUDE_DEBUG_FIELDS=false` for deployment.
+1. Ensure your `.env` is present and set `LLM_USE_CACHE=false` and `LLM_INCLUDE_DEBUG_FIELDS=false` for deployment (to avoid local cache writes and unnecessary debug fields in outputs).
 
 2. Run the build script:
 
@@ -79,11 +83,11 @@ chmod +x ./build.sh
 
 - `handler.py`
 - `requirements.txt` (copied from `requirements-compact.txt`)
-- `models/`, `nodes/`, `utils/`, `input/` (project files only)
+- `models/`, `nodes/`, `utils/`, `input/` (necessary files only)
 - `__init__.py` files for Python package directories (`models/`, `nodes/`, `utils/`)
 
 4. Deployment notes for your infra repo:
 
-- Set `AI_AUTO_REPLY_LAMBDA_SOURCE_PATH` to be the path to the `dist` folder of this repo, e.g. `../../course-ai-auto-reply-starter/dist/`
-
-- Set `AI_AUTO_REPLY_LAMBDA_HANDLER` to be `handler.handler`
+- Set your Lambda source path to the `dist` folder of this repo, e.g., `AI_AUTO_REPLY_LAMBDA_SOURCE_PATH=../../course-ai-auto-reply-starter/dist/`
+- Use handler for the Lambda (triggered by API Gateway), e.g., `AI_AUTO_REPLY_LAMBDA_HANDLER=handler.handler`
+- (Optional) Set your Lambda layer source path to the `dist` folder of this repo, e.g., `AI_AUTO_REPLY_LAMBDA_LAYER_SOURCE_PATH=../../course-ai-auto-reply-starter/dist/`

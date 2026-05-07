@@ -3,7 +3,10 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from models.context import Context
 from models.llm_result import (
+    ActionSummarizerResult,
     ClassifierResult,
+    FulfilledAction,
+    InferencerResult,
     TopicSuggesterResult,
 )
 from utils.llm import (
@@ -17,6 +20,9 @@ from utils.llm import (
 def suggest_topics(
     context: Context,
     classified_category: ClassifierResult,
+    required_actions: ActionSummarizerResult | None = None,
+    fulfilled_actions: list[FulfilledAction] | None = None,
+    inferred_result: InferencerResult | None = None,
     dry_run: bool = False,
 ) -> TopicSuggesterResult:
     system_prompt = f"""\
@@ -49,6 +55,24 @@ Conversation Messages:
 
 Classified Category:
 {classified_category}
+"""
+
+    if required_actions:
+        user_prompt += f"""
+Required Actions From Referrer:
+{required_actions}
+"""
+
+    if fulfilled_actions:
+        user_prompt += f"""
+Fulfilled Actions From Job Seeker:
+{fulfilled_actions}
+"""
+
+    if inferred_result:
+        user_prompt += f"""
+Inferred Result:
+{inferred_result}
 """
 
     if context.user_profile:

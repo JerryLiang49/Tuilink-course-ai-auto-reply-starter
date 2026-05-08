@@ -4,7 +4,10 @@ from langchain_openai import ChatOpenAI
 
 from models.context import Context
 from models.llm_result import (
+    ActionSummarizerResult,
     ClassifierResult,
+    FulfilledAction,
+    InferencerResult,
     MessageGeneratorResult,
 )
 from utils.llm import (
@@ -20,6 +23,9 @@ def generate_message(
     context: Context,
     classified_category: ClassifierResult,
     selected_topics: list[str],
+    required_actions: ActionSummarizerResult | None = None,
+    fulfilled_actions: list[FulfilledAction] | None = None,
+    inferred_result: InferencerResult | None = None,
     dry_run: bool = False,
 ) -> MessageGeneratorResult:
     system_prompt = f"""\
@@ -46,6 +52,24 @@ Classified Category:
 
 Selected Topics:
 {selected_topics}
+"""
+
+    if required_actions:
+        user_prompt += f"""
+Required Actions From Referrer:
+{required_actions}
+"""
+
+    if fulfilled_actions:
+        user_prompt += f"""
+Fulfilled Actions From Job Seeker:
+{fulfilled_actions}
+"""
+
+    if inferred_result:
+        user_prompt += f"""
+Inferred Result:
+{inferred_result}
 """
 
     if context.user_profile:

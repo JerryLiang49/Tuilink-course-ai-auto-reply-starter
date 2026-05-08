@@ -50,11 +50,11 @@ def all_required_actions_fulfilled(state: State) -> bool:
     if not required_action_ids:
         return True
 
-    fulfilled_action_ids = {
-        action.action_id
-        for action in state.fulfilled_actions or []
-        if action.is_fulfilled
-    }
+    fulfilled_action_ids = set()
+    for action in state.fulfilled_actions or []:
+        has_user_input = bool(action.answer or action.attachments_text)
+        if action.is_fulfilled and has_user_input:
+            fulfilled_action_ids.add(action.action_id)
 
     return required_action_ids.issubset(fulfilled_action_ids)
 
@@ -117,5 +117,10 @@ def orchestrate(
                 state.fulfilled_actions or [],
                 dry_run=False,
             )
+
+        # If the inferencer still sees missing details, keep the workflow paused.
+        if not state.inferred_result.actions_fulfilled:
+            state.step = "awaiting: user actions"
+            return state
 
     return suggest_topics_and_generate_reply_message(state)

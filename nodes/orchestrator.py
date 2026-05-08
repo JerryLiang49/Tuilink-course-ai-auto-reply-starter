@@ -50,11 +50,11 @@ def all_required_actions_fulfilled(state: State) -> bool:
     if not required_action_ids:
         return True
 
-    fulfilled_action_ids = {
-        action.action_id
-        for action in state.fulfilled_actions or []
-        if action.is_fulfilled
-    }
+    fulfilled_action_ids = set()
+    for action in state.fulfilled_actions or []:
+        has_user_input = bool(action.answer or action.attachments_text)
+        if action.is_fulfilled and has_user_input:
+            fulfilled_action_ids.add(action.action_id)
 
     return required_action_ids.issubset(fulfilled_action_ids)
 
@@ -74,6 +74,18 @@ def suggest_topics_and_generate_reply_message(state: State) -> State:
 
     # Always auto-select topics and generate reply message in this starter app.
     return auto_select_topics_and_generate_reply_message(state)
+
+
+def should_infer_from_actions(state: State) -> bool:
+    """Return whether fulfilled actions still need to be interpreted."""
+
+    # A missing inference means this is the first time all required actions are
+    # present. A negative inference may be stale because the caller can resume
+    # the same State with new fulfilled_actions while preserving inferred_result.
+    return (
+        state.inferred_result is None
+        or not state.inferred_result.actions_fulfilled
+    )
 
 
 def orchestrate(
@@ -109,7 +121,7 @@ def orchestrate(
             return state
 
         # Interpret fulfilled actions before suggesting topics or final wording.
-        if state.inferred_result is None:
+        if should_infer_from_actions(state):
             state.inferred_result = infer_from_actions(
                 state.context,
                 state.classified_category,
@@ -117,5 +129,10 @@ def orchestrate(
                 state.fulfilled_actions or [],
                 dry_run=False,
             )
+
+        # If the inferencer still sees missing details, keep the workflow paused.
+        if not state.inferred_result.actions_fulfilled:
+            state.step = "awaiting: user actions"
+            return state
 
     return suggest_topics_and_generate_reply_message(state)

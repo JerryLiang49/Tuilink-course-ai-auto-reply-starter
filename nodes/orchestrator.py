@@ -76,6 +76,18 @@ def suggest_topics_and_generate_reply_message(state: State) -> State:
     return auto_select_topics_and_generate_reply_message(state)
 
 
+def should_infer_from_actions(state: State) -> bool:
+    """Return whether fulfilled actions still need to be interpreted."""
+
+    # A missing inference means this is the first time all required actions are
+    # present. A negative inference may be stale because the caller can resume
+    # the same State with new fulfilled_actions while preserving inferred_result.
+    return (
+        state.inferred_result is None
+        or not state.inferred_result.actions_fulfilled
+    )
+
+
 def orchestrate(
     state: State,
 ) -> State:
@@ -109,7 +121,7 @@ def orchestrate(
             return state
 
         # Interpret fulfilled actions before suggesting topics or final wording.
-        if state.inferred_result is None:
+        if should_infer_from_actions(state):
             state.inferred_result = infer_from_actions(
                 state.context,
                 state.classified_category,

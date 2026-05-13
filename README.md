@@ -70,7 +70,7 @@ LLM_INCLUDE_DEBUG_FIELDS=true
 
 Use the build script to create a self-contained `dist/` folder ready for packaging and deployment.
 
-1. Ensure your `.env` is present and set `LLM_USE_CACHE=false` and `LLM_INCLUDE_DEBUG_FIELDS=false` for deployment (to avoid local cache writes and unnecessary debug fields in outputs).
+1. Ensure your deployment environment will provide `OPENAI_API_KEY`. Do not package `.env` into the Lambda artifact.
 
 2. Run the build script:
 
@@ -91,3 +91,4 @@ chmod +x ./build.sh
 - Set your Lambda source path to the `dist` folder of this repo, e.g., `AI_AUTO_REPLY_LAMBDA_SOURCE_PATH=../../course-ai-auto-reply-starter/dist/`
 - Use handler for the Lambda (triggered by API Gateway), e.g., `AI_AUTO_REPLY_LAMBDA_HANDLER=handler.handler`
 - (Optional) Set your Lambda layer source path to the `dist` folder of this repo, e.g., `AI_AUTO_REPLY_LAMBDA_LAYER_SOURCE_PATH=../../course-ai-auto-reply-starter/dist/`
+- Pass `OPENAI_API_KEY` through the infra deployment environment, for example by exporting it before running `yarn deploy-ai-auto-reply:staging`, or by setting `AI_AUTO_REPLY_OPENAI_API_KEY` in the infra repo's ignored `.env.staging` file.

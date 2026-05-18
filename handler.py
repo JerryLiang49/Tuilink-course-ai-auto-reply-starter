@@ -82,6 +82,15 @@ def get_required_action_prompt(state: State) -> str | None:
     return state.required_actions.prompt_to_user
 
 
+def get_required_actions(state: State) -> list[dict] | None:
+    """Return concrete required actions for clients to render as questions."""
+
+    if state.required_actions is None:
+        return None
+
+    return to_json_compatible(state.required_actions.actions)
+
+
 def handler(event, context):
     """Lambda entrypoint for online AI auto-reply generation."""
 
@@ -112,6 +121,7 @@ def handler(event, context):
                 "step": state.step,
                 "reply_message": get_reply_message(state),
                 "required_action_prompt": get_required_action_prompt(state),
+                "required_actions": get_required_actions(state),
                 "state": to_json_compatible(state),
             },
         )

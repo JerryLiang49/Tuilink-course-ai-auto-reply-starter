@@ -23,7 +23,7 @@ echo "Created $DIST_DIR"
 
 # Copy individual files
 echo "Copying files..."
-files=("handler.py" ".env")
+files=("handler.py")
 for file in "${files[@]}"; do
     if [ -f "$SCRIPT_DIR/$file" ]; then
         cp "$SCRIPT_DIR/$file" "$DIST_DIR/"
@@ -88,4 +88,4 @@ for item in "$DIST_DIR"/*; do
 done
 
 echo ""
-echo "🎉 Build successful! Your distribution package is ready in: $DIST_DIR" 
+echo "🎉 Build successful! Your distribution package is ready in: $DIST_DIR"
